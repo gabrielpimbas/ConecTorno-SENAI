@@ -7,7 +7,7 @@
 
     <title>ConecTorno | Mundo SENAI</title>
 
-    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="stylesheet" href="style.css?v=3" />
 
     <script
       src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
@@ -18,7 +18,7 @@
       defer
     ></script>
     <script src="config.js" defer></script>
-    <script src="app.js?v=2" defer></script>
+    <script src="app.js?v=3" defer></script>
   </head>
 
   <body>
@@ -317,7 +317,12 @@
         </div>
 
         <div class="monitor-head-right">
-          <span>MONITOR 01</span>
+          <div class="monitor-clock" aria-label="Hora atual">
+            <strong id="clockTime">--:--</strong>
+            <small id="clockDate"></small>
+          </div>
+
+          <span class="monitor-id">MONITOR 01</span>
 
           <span id="connectionStatus" class="online"> ● Sincronizando </span>
         </div>

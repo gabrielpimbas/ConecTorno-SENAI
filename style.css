@@ -1007,11 +1007,111 @@ kbd {
   max-height: 28%;
 }
 
-.logo-senai,
 .senai-login-img,
 .senai-login-container {
   background: transparent !important;
   box-shadow: none;
   border: none;
   padding: 0;
+}
+
+/* LOGO SENAI EM DESTAQUE: placa branca para o azul da marca aparecer */
+
+.logo-senai {
+  background: #fff;
+  border-radius: 8px;
+  padding: 7px 12px;
+  box-shadow: 0 4px 14px #0004;
+}
+
+.logo-login {
+  height: 84px;
+  padding: 14px 22px;
+  border-radius: 12px;
+  align-self: flex-start;
+  position: relative;
+  z-index: 1;
+}
+
+.logo-header {
+  height: 46px;
+}
+
+#monitorView .logo-monitor {
+  height: clamp(48px, 7vh, 76px);
+  padding: 10px 18px;
+  border-radius: 10px;
+  border-bottom: 4px solid var(--orange);
+}
+
+#monitorView .monitor-head {
+  min-height: 96px;
+}
+
+#monitorView .monitor-brand {
+  gap: 18px;
+  font-size: clamp(17px, 2.6vh, 28px);
+  flex-shrink: 0;
+}
+
+/* O monitor fica girado: a largura do cabeçalho é a altura da tela (vh). */
+#monitorView .monitor-head-right {
+  gap: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#monitorView .monitor-head {
+  gap: 14px;
+}
+
+@media (max-height: 820px) {
+  #monitorView .monitor-id {
+    display: none;
+  }
+
+  #monitorView .monitor-clock {
+    border-right: 0;
+    padding-right: 0;
+  }
+}
+
+/* RELÓGIO DO MONITOR */
+
+.monitor-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+  padding-right: 20px;
+  border-right: 1px solid #ffffff2b;
+}
+
+.monitor-clock strong {
+  font-size: clamp(24px, 4vh, 42px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.monitor-clock small {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #a8c6de;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .logo-login {
+    height: 60px;
+    padding: 9px 14px;
+  }
+
+  .logo-header {
+    height: 36px;
+    padding: 5px 9px;
+  }
 }

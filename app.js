@@ -908,5 +908,27 @@
     }
   });
 
+  // Relógio do modo monitor.
+  function tickClock() {
+    const now = new Date();
+
+    $("clockTime").textContent = now.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    $("clockDate").textContent = now
+      .toLocaleDateString("pt-BR", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(".", "");
+  }
+
+  tickClock();
+  setInterval(tickClock, 1000);
+
   authCheck();
 })();
