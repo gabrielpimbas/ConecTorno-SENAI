@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#082c58" />
+
+    <title>ConecTorno | Mundo SENAI</title>
+
+    <link rel="stylesheet" href="style.css" />
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
+      defer
+    ></script>
+    <script src="config.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+
+  <body>
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <section id="loginView" class="auth-page">
+      <div class="auth-art">
+        <img
+          src="images/Logo SENAI Azul com Acento Laranja.png"
+          alt="Logo SENAI"
+          class="logo-senai logo-login"
+        />
+
+        <div class="art-copy">
+          <p>TECNOLOGIA • INDÚSTRIA • EDUCAÇÃO</p>
+
+          <h1>
+            Informação certa.<br />
+            Na hora certa.
+          </h1>
+
+          <p>
+            Uma nova forma de acompanhar projetos e instruções no ambiente
+            industrial.
+          </p>
+        </div>
+
+        <div class="art-foot">MUNDO SENAI · DEMONSTRAÇÃO</div>
+      </div>
+
+      <div class="auth-panel">
+        <div class="mobile-brand">CONEC<span>TORNO</span></div>
+
+        <div class="login-card">
+          <span class="eyebrow">ACESSO AO SISTEMA</span>
+
+          <h2>Bem-vindo ao ConecTorno.</h2>
+
+          <p class="muted">
+            Entre com o e-mail e a senha cadastrados para acessar a
+            demonstração.
+          </p>
+
+          <form id="loginForm">
+            <label>
+              E-mail
+              <input
+                id="email"
+                type="email"
+                autocomplete="username"
+                required
+                placeholder="professor@exemplo.com"
+              />
+            </label>
+
+            <label>
+              Senha
+              <input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                placeholder="Sua senha"
+              />
+            </label>
+
+            <button class="primary" id="loginBtn" type="submit">
+              Entrar no sistema <span>→</span>
+            </button>
+          </form>
+
+          <p id="configError" class="warning hidden"></p>
+        </div>
+
+        <p class="auth-note">Projeto educacional · Acesso autorizado</p>
+      </div>
+    </section>
+
+    <section id="chooseView" class="hidden shell">
+      <header class="topbar">
+        <div class="brand">
+          <img
+            src="images/Logo SENAI Azul com Acento Laranja.png"
+            alt="SENAI"
+            class="logo-senai logo-header"
+          />
+
+          <span>CONECTORNO</span>
+
+          <small>MUNDO SENAI</small>
+        </div>
+
+        <div class="top-actions">
+          <span id="accountLabel" class="account"></span>
+
+          <button id="logoutBtn" class="light-btn">Sair da conta</button>
+        </div>
+      </header>
+
+      <main class="choose-main">
+        <div class="eyebrow">CENTRAL DE ACESSO</div>
+
+        <h1>Qual ambiente deseja abrir?</h1>
+
+        <p class="muted">
+          Escolha como deseja utilizar o ConecTorno nesta apresentação.
+        </p>
+
+        <div class="choice-grid">
+          <button class="choice-card" id="professorChoice">
+            <span class="choice-icon">▤</span>
+
+            <span class="choice-title"> Painel do professor </span>
+
+            <span class="choice-desc">
+              Envie arquivos, publique avisos e organize o conteúdo exibido.
+            </span>
+
+            <span class="choice-link"> Abrir painel → </span>
+          </button>
+
+          <button class="choice-card" id="monitorChoice">
+            <span class="choice-icon">▣</span>
+
+            <span class="choice-title"> Modo monitor </span>
+
+            <span class="choice-desc">
+              Exibição em tela cheia e atualização automática.
+            </span>
+
+            <span class="choice-link"> Iniciar apresentação → </span>
+          </button>
+        </div>
+
+        <p class="hint">
+          Uma única máquina pode alternar entre os ambientes. Para a
+          apresentação, use o modo monitor depois de publicar os conteúdos.
+        </p>
+      </main>
+    </section>
+
+    <section id="teacherView" class="hidden shell">
+      <header class="topbar">
+        <div class="brand">
+          <img
+            src="images/Logo SENAI Azul com Acento Laranja.png"
+            alt="SENAI"
+            class="logo-senai logo-header"
+          />
+
+          <span>CONECTORNO</span>
+
+          <small>PAINEL DO PROFESSOR</small>
+        </div>
+
+        <div class="top-actions">
+          <span class="live-dot"> ● Online </span>
+
+          <button id="backFromTeacher" class="light-btn">← Ambientes</button>
+        </div>
+      </header>
+
+      <main class="teacher-layout">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">GESTÃO DE CONTEÚDO</div>
+
+            <h1>Controle da apresentação</h1>
+
+            <p class="muted">Publique documentos e mensagens para o monitor.</p>
+          </div>
+
+          <span class="monitor-tag"> MONITOR 01 <b>● Ativo</b> </span>
+        </div>
+
+        <div class="columns">
+          <div class="editor-col">
+            <div class="panel">
+              <div class="panel-heading">
+                <div class="panel-icon">↑</div>
+
+                <div>
+                  <h2>Enviar arquivo</h2>
+                  <p>Imagens ou PDF, até 20 MB.</p>
+                </div>
+              </div>
+
+              <form id="uploadForm">
+                <label class="drop-zone" for="fileInput">
+                  <span class="upload-glyph">⇧</span>
+
+                  <strong id="fileLabel">
+                    Clique para selecionar um arquivo
+                  </strong>
+
+                  <small> PNG, JPG, WEBP ou PDF </small>
+
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    hidden
+                    required
+                  />
+                </label>
+
+                <label>
+                  Título do material
+
+                  <input
+                    id="fileTitle"
+                    type="text"
+                    maxlength="110"
+                    placeholder="Ex.: Desenho técnico da peça"
+                  />
+                </label>
+
+                <button id="uploadBtn" class="primary" type="submit">
+                  Publicar arquivo <span>→</span>
+                </button>
+              </form>
+            </div>
+
+            <div class="panel">
+              <div class="panel-heading">
+                <div class="panel-icon orange">✎</div>
+
+                <div>
+                  <h2>Enviar mensagem</h2>
+                  <p>Instruções e avisos para a tela.</p>
+                </div>
+              </div>
+
+              <form id="messageForm">
+                <label>
+                  Mensagem
+
+                  <textarea
+                    id="messageText"
+                    maxlength="500"
+                    rows="4"
+                    placeholder="Ex.: Conferir as medidas antes da usinagem."
+                    required
+                  ></textarea>
+                </label>
+
+                <button id="messageBtn" type="submit" class="secondary">
+                  Publicar mensagem <span>→</span>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="content-col">
+            <div class="panel">
+              <div class="panel-heading between">
+                <div>
+                  <h2>Conteúdos publicados</h2>
+                  <p>Itens visíveis na tela do monitor</p>
+                </div>
+
+                <button id="refreshBtn" class="light-btn small">
+                  ↻ Atualizar
+                </button>
+              </div>
+
+              <div id="itemsList" class="items-list">
+                <p class="muted">Carregando...</p>
+              </div>
+            </div>
+
+            <div class="panel help-panel">
+              <strong>Como funciona?</strong>
+
+              <p>
+                O arquivo mais recente ocupa a área principal do monitor. As
+                mensagens ficam em destaque abaixo. Apague um item para
+                removê-lo da apresentação.
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <section id="monitorView" class="hidden monitor-view">
+      <div class="monitor-head">
+        <div class="monitor-brand">
+          <img
+            src="images/Logo SENAI Azul com Acento Laranja.png"
+            alt="SENAI"
+            class="logo-senai logo-monitor"
+          />
+
+          <span>CONECTORNO</span>
+        </div>
+
+        <div class="monitor-head-right">
+          <span>MONITOR 01</span>
+
+          <span id="connectionStatus" class="online"> ● Sincronizando </span>
+        </div>
+      </div>
+
+      <div class="monitor-body">
+        <div class="monitor-content">
+          <div id="monitorEmpty" class="monitor-empty">
+            <div class="empty-symbol">▣</div>
+
+            <h2>Aguardando conteúdo</h2>
+
+            <p>
+              O material publicado pelo professor aparecerá aqui
+              automaticamente.
+            </p>
+          </div>
+
+          <div id="monitorFile" class="hidden document-stage">
+            <div class="file-bar">
+              <strong id="displayTitle"></strong>
+
+              <span id="displayTime"></span>
+            </div>
+
+            <div class="viewer" id="viewer"></div>
+          </div>
+        </div>
+
+        <div id="monitorMessages" class="monitor-messages hidden">
+          <div class="section-label">ORIENTAÇÕES DO PROFESSOR</div>
+
+          <div id="messageCards"></div>
+        </div>
+      </div>
+
+      <div class="monitor-foot">
+        <span> MUNDO SENAI · DEMONSTRAÇÃO INTERATIVA </span>
+      </div>
+    </section>
+
+    <div id="exitModal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="eyebrow">SAÍDA PROTEGIDA</div>
+
+        <h2>Encerrar modo monitor</h2>
+
+        <p class="muted">
+          Digite novamente a senha da conta para voltar à escolha de ambientes.
+        </p>
+
+        <form id="exitForm">
+          <label>
+            Senha de acesso
+
+            <input
+              id="exitPassword"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="cancelExit" class="light-btn">
+              Cancelar
+            </button>
+
+            <button type="submit" id="confirmExit" class="primary">
+              Desbloquear
+            </button>
+          </div>
+        </form>
+
+        <p id="exitError" class="error-text"></p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+CONECTORNO — MUNDO SENAI — PROTÓTIPO NOVO
+=========================================
+
+O QUE ESTÁ PRONTO
+- Tela de login real via Supabase Auth (e-mail/senha).
+- Escolha Professor / Monitor no MESMO notebook.
+- Professor envia imagens JPG/PNG/WEBP e PDF (até 20 MB), publica mensagens e remove conteúdo.
+- Monitor mostra o ARQUIVO MAIS RECENTE e até 3 mensagens recentes.
+- Sincronização Supabase Realtime + consulta a cada 5 s.
+- Modo monitor solicita tela cheia e Ctrl+X abre pedido de senha para voltar.
+- Tema azul/laranja inspirado no SENAI.
+- Publicável em GitHub Pages (sem servidor Python).
+
+ATENÇÃO: O NAVEGADOR NÃO PODE BLOQUEAR O SISTEMA OPERACIONAL!
+A tecla Ctrl+X abre uma saída protegida DENTRO do aplicativo; Alt+Tab,
+F11, Esc, gerenciador de tarefas, fechar aba, etc. ainda podem sair do site.
+Isto é um modo apresentação, não um bloqueio de segurança do dispositivo.
+
+CONFIGURAÇÃO EM 7 PASSOS
+
+1) Crie um projeto NOVO no Supabase, plano gratuito.
+2) SQL Editor > New query: cole e execute 01_BANCO_SUPABASE.sql UMA VEZ.
+3) Authentication > Users > Add user: convide/cadastre e-mail do professor
+   e defina uma senha. A conta precisa ter senha para login.
+4) Copie o UID (UUID) do usuário no Authentication > Users.
+   Em outra query, execute:
+   insert into public.administradores (usuario_id)
+   values ('SEU-UID-AQUI');
+5) Project Settings > API Keys: copie a PUBLISHABLE key (ou antiga anon key).
+   Project Settings / Data API ou Connect: copie a Project URL HTTPS.
+   Abra config.js e substitua os dois valores indicados.
+   NUNCA coloque service_role/secret key ou senha do banco no config.js.
+6) Teste localmente abrindo index.html no Chrome/Edge.
+   Faça login, publique imagem, entre no Monitor e tente Ctrl+X.
+   Se o navegador restringir arquivos locais, use:
+   python -m http.server 8080
+   e acesse http://localhost:8080
+7) Para publicar: crie um repositório GitHub NOVO, envie index.html,
+   style.css, app.js, config.js e .nojekyll (na raiz).
+   Settings > Pages > Deploy from a branch > main / (root) > Save.
+   Abra a URL do Pages e faça login. NÃO envie arquivos reais sigilosos.
+
+COMO USAR EM UM ÚNICO NOTEBOOK
+1) Entrar com e-mail e senha.
+2) Escolher 'Painel do professor'.
+3) Enviar um arquivo ou mensagem.
+4) Voltar para Ambientes e escolher 'Modo monitor'.
+5) Ctrl+X > digitar senha para voltar à escolha.
+
+LIMITAÇÕES DO PROTÓTIPO
+- O monitor não exige senha extra na entrada: é a mesma sessão autenticada.
+- Um usuário autorizado pode escolher qualquer aba, como solicitado.
+- A exclusão remove a linha do banco e tenta apagar o arquivo privado.
+- O PDF é mostrado no visualizador nativo do navegador.
+- Supabase e GitHub Pages requerem conexão à internet.
+- Para evento, deixe notebook conectado e faça testes com antecedência.
+- Os arquivos são privados no Storage; a chave publishable é pública por design.
+- Supabase Auth precisa estar habilitado para login por e-mail/senha.
+- Uma senha de banco de dados não funciona como senha de login.
+- Contas novas precisam estar confirmadas / convidadas conforme Auth.
+
+PROBLEMAS COMUNS
+- 'Configure config.js': URL/key não foram inseridas.
+- Login falha: conta não criada ou sem senha/confirmada.
+- Conta não autorizada: UID não inserido em administradores.
+- 403 ao enviar: RLS ou bucket não corresponde ao script.
+- Tela em branco: abra console F12, confirme internet/CDN e config.js.
+- Site não atualiza imediatamente: aguarde até 5 segundos ou atualize.
+- PDF não abre: verifique o visualizador PDF do navegador.
+
+ARQUIVOS
+index.html: interface
+style.css: design responsivo
+app.js: lógica cliente
+config.js: URL e chave pública do seu projeto
+01_BANCO_SUPABASE.sql: estrutura do banco e políticas de acesso
+.nojekyll: publicação estática via GitHub Pages
