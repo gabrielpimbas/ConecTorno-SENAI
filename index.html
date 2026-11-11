@@ -13,6 +13,10 @@
       src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"
       defer
     ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+      defer
+    ></script>
     <script src="config.js" defer></script>
     <script src="app.js" defer></script>
   </head>
@@ -362,7 +366,7 @@
         <h2>Encerrar modo monitor</h2>
 
         <p class="muted">
-          Digite novamente a senha da conta para voltar à escolha de ambientes.
+          Digite a senha de saída para voltar à escolha de ambientes.
         </p>
 
         <form id="exitForm">
@@ -372,7 +376,7 @@
             <input
               id="exitPassword"
               type="password"
-              autocomplete="current-password"
+              autocomplete="off"
               required
             />
           </label>

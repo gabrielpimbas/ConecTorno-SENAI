@@ -45,13 +45,15 @@ COMO USAR EM UM ÚNICO NOTEBOOK
 2) Escolher 'Painel do professor'.
 3) Enviar um arquivo ou mensagem.
 4) Voltar para Ambientes e escolher 'Modo monitor'.
-5) Ctrl+X > digitar senha para voltar à escolha.
+5) Ctrl+X > digitar a senha de saída (senai@123) para voltar à escolha.
 
 LIMITAÇÕES DO PROTÓTIPO
 - O monitor não exige senha extra na entrada: é a mesma sessão autenticada.
 - Um usuário autorizado pode escolher qualquer aba, como solicitado.
 - A exclusão remove a linha do banco e tenta apagar o arquivo privado.
-- O PDF é mostrado no visualizador nativo do navegador.
+- O PDF é desenhado como folha (PDF.js); várias páginas avançam a cada 15 s
+  (setas ← → trocam manualmente).
+- A senha de saída do monitor (Ctrl+X) é fixa: senai@123 (hash em app.js).
 - Supabase e GitHub Pages requerem conexão à internet.
 - Para evento, deixe notebook conectado e faça testes com antecedência.
 - Os arquivos são privados no Storage; a chave publishable é pública por design.

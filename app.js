@@ -17,6 +17,22 @@
 
   const BUCKET = "conectorno-arquivos";
 
+  // SHA-256 da senha de saída do modo monitor (senai@123).
+  // Para trocar: gere o SHA-256 da nova senha e substitua o valor abaixo.
+  const EXIT_PASSWORD_SHA256 =
+    "57dbc5597ec304807a8dfd7e3d4d587b78369f232e3c796fafa955dbf9b39dae";
+
+  // Visualização de PDF (PDF.js): cada página é desenhada como uma folha.
+  const PDF_WORKER =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const PDF_PAGE_SECONDS = 15;
+
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER;
+  }
+
+  let pdf = null;
+
   let session = null;
   let mode = "login";
   let entries = [];
@@ -215,6 +231,7 @@
   });
 
   $("monitorChoice").addEventListener("click", async () => {
+    resetViewer();
     show("monitor");
     startUpdates();
 
@@ -511,8 +528,7 @@
     const viewer = $("viewer");
 
     if (!file) {
-      viewer.replaceChildren();
-      viewer.dataset.path = "";
+      resetViewer();
       return;
     }
 
@@ -520,35 +536,42 @@
       return;
     }
 
+    const stillHere = () => current === ticket && mode === "monitor";
+
     try {
-      const url = await getUrl(file.caminho);
-
-      if (current !== ticket || mode !== "monitor") {
-        return;
-      }
-
-      const element = document.createElement(
-        file.tipo === "pdf" ? "iframe" : "img",
-      );
-
-      element.src = url;
-
       if (file.tipo === "pdf") {
-        element.title = file.titulo || "PDF do projeto";
+        if (!viewer.childElementCount) {
+          viewer.replaceChildren(make("div", "viewer-loading", "Carregando…"));
+        }
+
+        if (!(await showPdf(file, stillHere))) return;
       } else {
-        element.alt = file.titulo || "Imagem do projeto";
+        const url = await getUrl(file.caminho);
+
+        if (!stillHere()) return;
+
+        const img = make("img", "sheet image-sheet");
+
+        img.src = url;
+        img.alt = file.titulo || "Imagem do projeto";
+
+        clearPdf();
+        viewer.replaceChildren(img);
+        animateSheet(img);
       }
 
-      viewer.replaceChildren(element);
       viewer.dataset.path = file.caminho;
 
       $("displayTitle").textContent = file.titulo;
       $("displayTime").textContent = dateText(file.criado_em);
     } catch (error) {
+      console.error("ConecTorno viewer", error);
+      clearPdf();
+
       viewer.replaceChildren(
         make(
           "p",
-          "",
+          "viewer-error",
           "Não foi possível carregar o arquivo: " + errMessage(error),
         ),
       );
@@ -556,6 +579,185 @@
       viewer.dataset.path = "";
     }
   }
+
+  function animateSheet(element) {
+    element.classList.remove("turn");
+    void element.offsetWidth;
+    element.classList.add("turn");
+  }
+
+  function clearPdf() {
+    if (!pdf) return;
+
+    clearTimeout(pdf.timer);
+
+    if (pdf.task) pdf.task.cancel();
+
+    pdf.doc.destroy();
+    pdf = null;
+  }
+
+  function resetViewer() {
+    clearPdf();
+
+    const viewer = $("viewer");
+
+    viewer.replaceChildren();
+    viewer.dataset.path = "";
+  }
+
+  // Baixa o PDF e mostra a primeira página como uma folha (sem a barra
+  // do visualizador do navegador). PDFs com várias páginas avançam sozinhos.
+  async function showPdf(file, stillHere) {
+    const viewer = $("viewer");
+
+    if (!window.pdfjsLib) {
+      // Sem PDF.js (CDN bloqueada): visualizador nativo, sem barras.
+      const url = await getUrl(file.caminho);
+
+      if (!stillHere()) return false;
+
+      clearPdf();
+
+      const frame = make("iframe", "pdf-fallback");
+
+      frame.src = url + "#toolbar=0&navpanes=0&scrollbar=0&view=Fit";
+      frame.title = file.titulo || "PDF do projeto";
+
+      viewer.replaceChildren(frame);
+      return true;
+    }
+
+    const { data: blob, error } = await sb.storage
+      .from(BUCKET)
+      .download(file.caminho);
+
+    if (error) throw error;
+
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const doc = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+
+    if (!stillHere()) {
+      doc.destroy();
+      return false;
+    }
+
+    clearPdf();
+
+    const sheet = make("div", "sheet pdf-sheet");
+    const nodes = [sheet];
+    let pager = null;
+
+    if (doc.numPages > 1) {
+      pager = make("div", "pdf-pager");
+      pager.append(make("span", "pdf-pager-label"), make("span", "pdf-pager-bar"));
+      pager.lastChild.append(make("i"));
+      nodes.push(pager);
+    }
+
+    viewer.replaceChildren(...nodes);
+
+    pdf = { doc, sheet, pager, page: 1, timer: null, task: null };
+
+    await drawPdfPage();
+    return true;
+  }
+
+  async function drawPdfPage() {
+    const state = pdf;
+
+    if (!state) return;
+
+    clearTimeout(state.timer);
+
+    const page = await state.doc.getPage(state.page);
+
+    if (pdf !== state) return;
+
+    const viewer = $("viewer");
+    const pad = 28;
+    const pagerSpace = state.pager ? 46 : 0;
+    const availW = Math.max(80, viewer.clientWidth - pad * 2);
+    const availH = Math.max(80, viewer.clientHeight - pad * 2 - pagerSpace);
+
+    const base = page.getViewport({ scale: 1 });
+    const fit = Math.min(availW / base.width, availH / base.height);
+
+    // Renderiza na resolução real da tela para o texto ficar nítido.
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    let scale = fit * dpr * 1.25;
+    const maxPixels = 24e6;
+    const area = base.width * base.height * scale * scale;
+
+    if (area > maxPixels) scale *= Math.sqrt(maxPixels / area);
+
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    canvas.style.width = Math.floor(base.width * fit) + "px";
+    canvas.style.height = Math.floor(base.height * fit) + "px";
+
+    if (state.task) state.task.cancel();
+
+    const task = page.render({
+      canvasContext: canvas.getContext("2d"),
+      viewport,
+      background: "#ffffff",
+    });
+
+    state.task = task;
+
+    try {
+      await task.promise;
+    } catch (error) {
+      if (error && error.name === "RenderingCancelledException") return;
+      throw error;
+    } finally {
+      if (state.task === task) state.task = null;
+    }
+
+    if (pdf !== state) return;
+
+    state.sheet.replaceChildren(canvas);
+    animateSheet(state.sheet);
+
+    if (state.pager) {
+      const total = state.doc.numPages;
+
+      state.pager.firstChild.textContent = `PÁGINA ${state.page} DE ${total}`;
+      state.pager.style.setProperty("--page-time", PDF_PAGE_SECONDS + "s");
+      animateSheet(state.pager);
+
+      state.timer = setTimeout(() => {
+        turnPdfPage(1);
+      }, PDF_PAGE_SECONDS * 1000);
+    }
+  }
+
+  function turnPdfPage(step) {
+    if (!pdf || pdf.doc.numPages < 2) return;
+
+    const total = pdf.doc.numPages;
+
+    pdf.page = ((pdf.page - 1 + step + total) % total) + 1;
+
+    drawPdfPage().catch((error) => console.error("ConecTorno PDF", error));
+  }
+
+  // Ajusta a folha quando a tela muda de tamanho (ex.: ao entrar em tela cheia).
+  let resizeTimer = null;
+
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+
+    resizeTimer = setTimeout(() => {
+      if (pdf && mode === "monitor") {
+        drawPdfPage().catch((error) => console.error("ConecTorno PDF", error));
+      }
+    }, 250);
+  });
 
   function stopUpdates() {
     if (channel) {
@@ -614,8 +816,41 @@
     $("exitPassword").value = "";
   }
 
+  async function checkExitPassword(typed) {
+    if (window.crypto && window.crypto.subtle) {
+      const digest = await window.crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(typed),
+      );
+
+      const hex = Array.from(new Uint8Array(digest), (b) =>
+        b.toString(16).padStart(2, "0"),
+      ).join("");
+
+      return hex === EXIT_PASSWORD_SHA256;
+    }
+
+    // Página aberta fora de https/localhost: confere com a senha da conta.
+    const { error } = await sb.auth.signInWithPassword({
+      email: session.user.email,
+      password: typed,
+    });
+
+    return !error;
+  }
+
   // Atalho oculto para solicitar a saída do monitor.
   document.addEventListener("keydown", (event) => {
+    // Setas trocam a página do PDF manualmente no monitor.
+    if (
+      mode === "monitor" &&
+      $("exitModal").classList.contains("hidden") &&
+      (event.key === "ArrowRight" || event.key === "ArrowLeft")
+    ) {
+      event.preventDefault();
+      turnPdfPage(event.key === "ArrowRight" ? 1 : -1);
+    }
+
     if (
       mode === "monitor" &&
       event.ctrlKey &&
@@ -644,15 +879,13 @@
     busy("confirmExit", true);
 
     try {
-      const { error } = await sb.auth.signInWithPassword({
-        email: session.user.email,
-        password: $("exitPassword").value,
-      });
-
-      if (error) throw error;
+      if (!(await checkExitPassword($("exitPassword").value))) {
+        throw new Error("Senha incorreta");
+      }
 
       closeExit();
       stopUpdates();
+      resetViewer();
 
       if (document.fullscreenElement) {
         await document.exitFullscreen().catch(() => {});
@@ -662,7 +895,7 @@
 
       toast("Modo monitor encerrado.");
     } catch (error) {
-      $("exitError").textContent = "Senha incorreta ou falha na autenticação.";
+      $("exitError").textContent = "Senha incorreta.";
     } finally {
       busy("confirmExit", false);
     }
